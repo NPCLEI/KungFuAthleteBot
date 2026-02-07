@@ -316,42 +316,49 @@ See [GMR README](https://github.com/YanjieZe/GMR) for other list
 
 ## Video Source and Acknowledgement
 
-<div style="display: flex; align-items: flex-start; gap: 20px;">
+<table>
+<tr>
+<td width="180" valign="top">
 
-  <img src="./docs/xyh_1.jpg" alt="Xie Yuanhang" width="160"/>
+<img src="./docs/xyh_1.jpg" alt="Xie Yuanhang" width="160"/>
 
-  <div>
-<p>
-      <strong>Xie Yuanhang</strong> is an athlete of the <strong>Guangxi Wushu Team</strong>,
-      a <strong>National-Level Elite Athlete of China</strong>, and holds the rank of
-      <strong>Chinese Wushu 6th Duan</strong>. He achieved <strong>third place in the Wushu Taolu event
-      at the 10th National Games of the People’s Republic of China</strong>.
-      His video content systematically covers a wide range of
-      <strong>International Wushu Competition Taolu</strong>, including Changquan, Nanquan,
-      weapon routines, and Taijiquan (including Taijijian).
-</p>
-
-    <p>
-      We would like to express our <strong>special and sincere gratitude to Xie Yuanhang</strong>
-      for granting permission to use his video materials for <strong>research and academic purposes</strong>.
-    </p>
+</td>
+<td valign="top">
 
 <p>
-  🔗 <strong>Personal Homepage (Bilibili):</strong><br>
-  <a href="https://space.bilibili.com/1475395086">
-    https://space.bilibili.com/1475395086
-  </a>
+<strong>Xie Yuanhang</strong> is an athlete of the <strong>Guangxi Wushu Team</strong>,
+a <strong>National-Level Elite Athlete of China</strong>, and holds the rank of
+<strong>Chinese Wushu 6th Duan</strong>. He achieved <strong>third place in the Wushu Taolu event
+at the 10th National Games of the People’s Republic of China</strong>.
+His video content systematically covers a wide range of
+<strong>International Wushu Competition Taolu</strong>, including Changquan, Nanquan,
+weapon routines, and Taijiquan (including Taijijian).
 </p>
 
 <p>
-本项目所使用的视频素材主要来源于 谢远航 教练/运动员在其个人平台公开发布的系列武术训练与竞赛示范视频。谢远航系广西武术队运动员，国家级运动健将，中国武术六段，并曾获得中华人民共和国第十届运动会武术套路项目第三名。其视频内容系统覆盖国际武术竞赛套路中的长拳、南拳、器械及太极拳（剑）等多个项目，动作规范、节奏清晰，具有较高的专业性与示范价值。
-
-在此，我们特别鸣谢谢远航先生对本项目的大力支持与授权，允许我们基于其公开视频素材进行整理、处理与研究使用。本数据集即在上述授权前提下，基于其公开视频内容构建与制作，相关使用仅用于科研与学术目的。谢远航先生的无私支持为本数据集的高质量构建提供了重要保障，在此谨致以诚挚感谢。
+We would like to express our <strong>special and sincere gratitude to Xie Yuanhang</strong>
+for granting permission to use his video materials for
+<strong>research and academic purposes</strong>.
 </p>
 
-  </div>
+<p>
+🔗 <strong>Personal Homepage (Bilibili):</strong><br>
+<a href="https://space.bilibili.com/1475395086">
+https://space.bilibili.com/1475395086
+</a>
+</p>
 
-</div>
+<p>
+本项目所使用的视频素材主要来源于谢远航教练/运动员在其个人平台公开发布的系列武术训练与竞赛示范视频。谢远航系广西武术队运动员，国家级运动健将，中国武术六段，并曾获得中华人民共和国第十届运动会武术套路项目第三名。其视频内容系统覆盖国际武术竞赛套路中的长拳、南拳、器械及太极拳（剑）等多个项目，动作规范、节奏清晰，具有较高的专业性与示范价值。
+</p>
+
+<p>
+在此，我们特别鸣谢谢远航先生对本项目的大力支持与授权，允许我们基于其公开视频素材进行整理、处理与研究使用。本数据集仅用于科研与学术目的。
+</p>
+
+</td>
+</tr>
+</table>
 
 
 ## Acknowledgements
