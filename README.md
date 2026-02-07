@@ -234,19 +234,16 @@ python scripts/vis_robot_qpos.py --robot_motion_path=././KungfuAthlete/g1/jump/2
 <table>
 <tr>
 <td align="center" width="50%">
-<video width="400" controls>
-  <source src="./docs/example_g1_before_78.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
-<br><b>78 before</b>
-</td>
 
+![](./docs/example_g1_before_78.gif)  
+**78 before**
+
+</td>
 <td align="center" width="50%">
-<video width="400" controls>
-  <source src="./docs/example_g1_after_78.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
-<br><b>78 after</b>
+
+![](./docs/example_g1_after_78.gif)  
+**78 after**
+
 </td>
 </tr>
 </table>
@@ -254,35 +251,16 @@ python scripts/vis_robot_qpos.py --robot_motion_path=././KungfuAthlete/g1/jump/2
 <table>
 <tr>
 <td align="center" width="50%">
-<video width="400" controls>
-  <source src="./docs/example_g1_before_117.mp4" type="video/mp4">
-</video>
-<br><b>117 before</b>
-</td>
 
-<td align="center" width="50%">
-<video width="400" controls>
-  <source src="./docs/example_g1_after_117.mp4" type="video/mp4">
-</video>
-<br><b>117 after</b>
-</td>
-</tr>
-</table>
+![](./docs/example_g1_before_117.gif)  
+**117 before**
 
-<table>
-<tr>
-<td align="center" width="50%">
-<video width="400" controls>
-  <source src="./docs/example_g1_before_213.mp4" type="video/mp4">
-</video>
-<br><b>213 before</b>
 </td>
-
 <td align="center" width="50%">
-<video width="400" controls>
-  <source src="./docs/example_g1_after_213.mp4" type="video/mp4">
-</video>
-<br><b>213 after</b>
+
+![](./docs/example_g1_after_117.gif)  
+**117 after**
+
 </td>
 </tr>
 </table>
@@ -290,17 +268,33 @@ python scripts/vis_robot_qpos.py --robot_motion_path=././KungfuAthlete/g1/jump/2
 <table>
 <tr>
 <td align="center" width="50%">
-<video width="400" controls>
-  <source src="./docs/example_g1_before_278.mp4" type="video/mp4">
-</video>
-<br><b>278 before</b>
-</td>
 
+![](./docs/example_g1_before_213.gif)  
+**213 before**
+
+</td>
 <td align="center" width="50%">
-<video width="400" controls>
-  <source src="./docs/example_g1_after_278.mp4" type="video/mp4">
-</video>
-<br><b>278 after</b>
+
+![](./docs/example_g1_after_213.gif)  
+**213 after**
+
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td align="center" width="50%">
+
+![](./docs/example_g1_before_278.gif)  
+**278 before**
+
+</td>
+<td align="center" width="50%">
+
+![](./docs/example_g1_after_278.gif)  
+**278 after**
+
 </td>
 </tr>
 </table>
@@ -316,8 +310,7 @@ See [GMR README](https://github.com/YanjieZe/GMR) for other list
 
 
 ## Video Source and Acknowledgement
-
-<img src="./docs/xieyuanhang.png" alt="Xie Yuanhang" width="160"/>
+<img src="./docs/xyh_1.jpg" alt="Xie Yuanhang" width="160"/>
 
 The video materials used in this project are primarily sourced from a series of publicly released martial arts training and competition demonstration videos by **Xie Yuanhang**.
 
