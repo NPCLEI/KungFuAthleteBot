@@ -1,22 +1,73 @@
 # KungfuAthlete
 
 <img src="./docs/cover.png" controls></img>
-## Video Source and Acknowledgement
 
-<img src="./docs/xieyuanhang.png" alt="Xie Yuanhang" width="160"/>
+## Dataset Overview
 
-The video materials used in this project are primarily sourced from a series of publicly released martial arts training and competition demonstration videos by **Xie Yuanhang**.
+The dataset originates from athletes’ **daily martial arts training videos**, totaling **197 video clips**.
+Each clip may consist of multiple merged segments. We apply **automatic temporal segmentation**, resulting in **1,726 sub-clips**, ensuring that most segments avoid abrupt transitions that could introduce excessive motion discontinuities.
 
-**Xie Yuanhang** is an athlete of the **Guangxi Wushu Team**, a **National-Level Elite Athlete of China**, and holds the rank of **Chinese Wushu 6th Duan**. He achieved **third place in the Wushu Taolu event at the 10th National Games of the People’s Republic of China**. His video content systematically covers a wide range of **International Wushu Competition Taolu**, including Changquan, Nanquan, weapon routines, and Taijiquan (including Taijijian). The demonstrations are technically precise, rhythmically clear, and of high professional and instructional value.
+All sub-clips are processed using **GVHMR** for motion capture, followed by **GMR-based reorientation**.
+After filtering and post-processing, the final dataset contains **848 motion samples**, primarily reflecting routine training activities.
 
-We would like to express our **special and sincere gratitude to Xie Yuanhang** for his strong support and for **granting permission to use his video materials** in this project. Under this authorization, the dataset is **constructed and processed based on his publicly available videos**, and is intended **solely for research and academic purposes**. His generous support has been instrumental in ensuring the high quality and reliability of this dataset.
+## Category Distribution
 
-🔗 **Personal Homepage (Bilibili):**  
-https://space.bilibili.com/1475395086
+| Category       | Count  | Example Subcategories                                |
+| -------------- | ------ | ---------------------------------------------------- |
+| Daily Training | 715    | –                                                    |
+| Fist           | 53     | Long Fist (33), Tai Chi Fist (14), Southern Fist (6) |
+| Staff          | 30     | Staff Technique (30)                                 |
+| Skills         | 28     | Backflip (12), Lotus Swing (9)                       |
+| Saber / Sword  | 15 / 7 | Southern Saber (15), Tai Chi Sword (7)               |
 
-本项目所使用的视频素材主要来源于 谢远航 教练/运动员在其个人平台公开发布的系列武术训练与竞赛示范视频。谢远航系广西武术队运动员，国家级运动健将，中国武术六段，并曾获得中华人民共和国第十届运动会武术套路项目第三名。其视频内容系统覆盖国际武术竞赛套路中的长拳、南拳、器械及太极拳（剑）等多个项目，动作规范、节奏清晰，具有较高的专业性与示范价值。
+### Notes
 
-在此，我们特别鸣谢谢远航先生对本项目的大力支持与授权，允许我们基于其公开视频素材进行整理、处理与研究使用。本数据集即在上述授权前提下，基于其公开视频内容构建与制作，相关使用仅用于科研与学术目的。谢远航先生的无私支持为本数据集的高质量构建提供了重要保障，在此谨致以诚挚感谢。
+* **Daily Training** dominates the dataset (**715 samples, ~84%**), mainly representing standard practice routines rather than explicit technique demonstrations.
+* **Boxing techniques** form the largest specialized category, with **Changquan (Long Fist)** being the most prevalent.
+* **Skill-based movements** concentrate on high-difficulty acrobatics such as somersaults and lotus swings.
+* Weapon-based motions are limited but structured, focusing on standardized staff, saber, and Tai Chi sword forms.
+
+---
+
+## Motion Statistics Comparison
+
+All metrics are averaged over the entire dataset.
+
+| Dataset                    | FPS  | Joint Vel. | Body Lin. Vel. | Body Ang. Vel. | Average Frames   |
+| -------------------------- | ---- | ---------- | -------------- | -------------- | -------- |
+| LAFAN1                     | 50.0 | 0.00142    | 0.00021        | 0.01147        | 10749.23 |
+| PHUMA                      | 50.0 | 0.00120    | 0.00440        | -0.00131       | 169.59   |
+| AMASS                      | 30.0 | 0.00048    | -0.00568       | 0.00903        | 370.65   |
+| **KungFuAthlete (Ground)** | 50.0 | -0.00199   | 0.01057        | 0.04034        | 577.68   |
+| **KungFuAthlete (Jump)**   | 50.0 | 0.02384    | 0.05297        | 0.18017        | 397.21   |
+
+---
+
+## Ground vs. Jump Subsets
+
+We divide the dataset based on the presence of jumping motions:
+
+* **KungFuAthlete (Ground)**
+  Contains non-jumping actions, emphasizing:
+
+  * Continuous ground-based power generation
+  * Rapid body rotations
+  * Weapon manipulation and stance transitions
+
+* **KungFuAthlete (Jump)**
+  Includes high-dynamic aerial motions such as:
+
+  * Somersaults
+  * Cartwheels
+  * Other acrobatic jumps
+
+### Key Observations
+
+* The **Jump subset** exhibits the **highest joint velocity, body linear velocity, and angular velocity** among all compared datasets.
+* The **Ground subset**, while excluding jumps, still shows significantly higher dynamics than natural motion datasets (e.g., LAFAN1, AMASS).
+* Compared to PHUMA and AMASS, which focus on daily activities and walking motions, **KungFuAthlete demonstrates stronger non-stationarity, larger motion amplitudes, and more challenging transient dynamics**, even at comparable or higher frame rates.
+
+
 
 
 
@@ -105,16 +156,8 @@ src/
 
 ## Installation
 
-This project requires **two conda environments**: `vis-gvhmr` and `gmr`.
+We have included a video (.mp4) for each action dataset in the download link. If you wish to utilize the root node adjustment feature or visualize the data yourself, please install the third-party packages listed below the repository:
 
-```bash
-# Clone repo (with submodules)
-git clone --recursive waitingforgitlink
-cd KungfuAthlete
-
-# Or initialize submodules after cloning
-git submodule update --init --recursive
-```
 
 ### 1. GMR Environment (Robot Retargeting)
 
@@ -125,8 +168,6 @@ cd third_party/GMR
 pip install -e .
 cd ./..
 ```
-
-For details, see [GMR README](third_party/GMR/README.md).
 
 ### 2. Vis-GVHMR Environment (Pose Visualization)
 
@@ -270,24 +311,26 @@ python scripts/vis_robot_qpos.py --robot_motion_path=././KungfuAthlete/g1/jump/2
 | Robot | ID | DOF |
 |-------|-----|-----|
 | Unitree G1 | `unitree_g1` | 29 |
-| Unitree H1 | `unitree_h1` | 19 |
-| Booster T1 | `booster_t1` | 23 |
 
-See [GMR README](third_party/GMR/README.md) for full list
+See [GMR README](https://github.com/YanjieZe/GMR) for other list
 
-<!-- ## TODO
 
-- [ ] **`Git` (Create Git)** - Create git code repository
+## Video Source and Acknowledgement
 
-- [ ] **`GMR` (Add submodule)** - Add GMR as submodule after create git code repository
+<img src="./docs/xieyuanhang.png" alt="Xie Yuanhang" width="160"/>
 
-  ```
-  git submodule add https://github.com/taeyoun811/GMR.git third_party
-  ```
+The video materials used in this project are primarily sourced from a series of publicly released martial arts training and competition demonstration videos by **Xie Yuanhang**.
 
-- [ ] **`Data` (Add link)** - Add Data download link
+**Xie Yuanhang** is an athlete of the **Guangxi Wushu Team**, a **National-Level Elite Athlete of China**, and holds the rank of **Chinese Wushu 6th Duan**. He achieved **third place in the Wushu Taolu event at the 10th National Games of the People’s Republic of China**. His video content systematically covers a wide range of **International Wushu Competition Taolu**, including Changquan, Nanquan, weapon routines, and Taijiquan (including Taijijian). The demonstrations are technically precise, rhythmically clear, and of high professional and instructional value.
 
-- [ ] **`License` (Add license)** - Confirm the license for adding new code and ensure compliance with the licenses for using other open source projects. -->
+We would like to express our **special and sincere gratitude to Xie Yuanhang** for his strong support and for **granting permission to use his video materials** in this project. Under this authorization, the dataset is **constructed and processed based on his publicly available videos**, and is intended **solely for research and academic purposes**. His generous support has been instrumental in ensuring the high quality and reliability of this dataset.
+
+🔗 **Personal Homepage (Bilibili):**  
+https://space.bilibili.com/1475395086
+
+本项目所使用的视频素材主要来源于 谢远航 教练/运动员在其个人平台公开发布的系列武术训练与竞赛示范视频。谢远航系广西武术队运动员，国家级运动健将，中国武术六段，并曾获得中华人民共和国第十届运动会武术套路项目第三名。其视频内容系统覆盖国际武术竞赛套路中的长拳、南拳、器械及太极拳（剑）等多个项目，动作规范、节奏清晰，具有较高的专业性与示范价值。
+
+在此，我们特别鸣谢谢远航先生对本项目的大力支持与授权，允许我们基于其公开视频素材进行整理、处理与研究使用。本数据集即在上述授权前提下，基于其公开视频内容构建与制作，相关使用仅用于科研与学术目的。谢远航先生的无私支持为本数据集的高质量构建提供了重要保障，在此谨致以诚挚感谢。
 
 ## Acknowledgements
 
