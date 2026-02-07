@@ -193,51 +193,77 @@ python scripts/vis_robot_qpos.py --robot_motion_path=././KungfuAthlete/g1/jump/2
 <table>
 <tr>
 <td align="center" width="50%">
-<video src="./docs/example_g1_before_78.mp4" width="400" controls></video>
+<video width="400" controls>
+  <source src="./docs/example_g1_before_78.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 <br><b>78 before</b>
 </td>
+
 <td align="center" width="50%">
-<video src="./docs/example_g1_after_78.mp4" width="400" controls></video>
+<video width="400" controls>
+  <source src="./docs/example_g1_after_78.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 <br><b>78 after</b>
 </td>
 </tr>
 </table>
+
 <table>
 <tr>
 <td align="center" width="50%">
-<video src="./docs/example_g1_before_117.mp4" width="400" controls></video>
+<video width="400" controls>
+  <source src="./docs/example_g1_before_117.mp4" type="video/mp4">
+</video>
 <br><b>117 before</b>
 </td>
+
 <td align="center" width="50%">
-<video src="./docs/example_g1_after_117.mp4" width="400" controls></video>
+<video width="400" controls>
+  <source src="./docs/example_g1_after_117.mp4" type="video/mp4">
+</video>
 <br><b>117 after</b>
 </td>
 </tr>
 </table>
+
 <table>
 <tr>
 <td align="center" width="50%">
-<video src="./docs/example_g1_before_213.mp4" width="400" controls></video>
+<video width="400" controls>
+  <source src="./docs/example_g1_before_213.mp4" type="video/mp4">
+</video>
 <br><b>213 before</b>
 </td>
+
 <td align="center" width="50%">
-<video src="./docs/example_g1_after_213.mp4" width="400" controls></video>
+<video width="400" controls>
+  <source src="./docs/example_g1_after_213.mp4" type="video/mp4">
+</video>
 <br><b>213 after</b>
 </td>
 </tr>
 </table>
+
 <table>
 <tr>
 <td align="center" width="50%">
-<video src="./docs/example_g1_before_278.mp4" width="400" controls></video>
+<video width="400" controls>
+  <source src="./docs/example_g1_before_278.mp4" type="video/mp4">
+</video>
 <br><b>278 before</b>
 </td>
+
 <td align="center" width="50%">
-<video src="./docs/example_g1_after_278.mp4" width="400" controls></video>
+<video width="400" controls>
+  <source src="./docs/example_g1_after_278.mp4" type="video/mp4">
+</video>
 <br><b>278 after</b>
 </td>
 </tr>
 </table>
+
 
 ## Supported Robots
 
