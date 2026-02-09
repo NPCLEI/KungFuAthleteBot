@@ -2,6 +2,12 @@
 
 <img src="./docs/cover.png" controls></img>
 
+
+| arXiv | YouTube | Bilibili | Dataset |
+|-------|---------|----------|---------|
+| [![arXiv](https://img.shields.io/badge/arXiv-Preprint-red?style=for-the-badge&logo=arxiv)](https://arxiv.org/abs/你的arXiv链接) | [![YouTube](https://img.shields.io/badge/YouTube-Video-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/你的YouTube链接) | [![Bilibili](https://img.shields.io/badge/Bilibili-Video-orange?style=for-the-badge&logo=bilibili)](https://www.bilibili.com/你的Bilibili链接) | [![Dataset](https://img.shields.io/badge/Dataset-Data-blue?style=for-the-badge&logo=dataverse)](https://drive.google.com/drive/folders/1ZntW9jPA-BXxttvCWlKQsSbmXt91fSsh?usp=sharing) |
+
+  
 ## Dataset Overview
 
 The dataset originates from athletes’ **daily martial arts training videos**, totaling **197 video clips**.
@@ -67,9 +73,9 @@ We divide the dataset based on the presence of jumping motions:
 * The **Ground subset**, while excluding jumps, still shows significantly higher dynamics than natural motion datasets (e.g., LAFAN1, AMASS).
 * Compared to PHUMA and AMASS, which focus on daily activities and walking motions, **KungFuAthlete demonstrates stronger non-stationarity, larger motion amplitudes, and more challenging transient dynamics**, even at comparable or higher frame rates.
 
+### ⚠️ Safety Warning
 
-
-
+> The *Jump* subset is intended for studying the upper limits of humanoid motion. Direct training or deployment on real robots without strict safety constraints may lead to serious hardware damage.
 
 ## Demo
 
@@ -78,13 +84,13 @@ We divide the dataset based on the presence of jumping motions:
 <td align="center" width="50%">
 
 ![](./docs/example_gvhmr_278.gif)  
-**78 before**
+**278 GVMR SMPL**
 
 </td>
 <td align="center" width="50%">
 
 ![](./docs/example_g1_after_278.gif)  
-**78 after**
+**278 GMR, Height-Adjusted**
 
 </td>
 </tr>
