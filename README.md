@@ -1,11 +1,17 @@
 # KungfuAthlete
 
-<img src="./docs/cover.png" controls></img>
+<img src="./docs/cover_ub.png" controls></img>
 
 
-| arXiv | YouTube | Bilibili | Dataset |
-|-------|---------|----------|---------|
-| [![arXiv](https://img.shields.io/badge/arXiv-Preprint-red?style=for-the-badge&logo=arxiv)](https://arxiv.org/abs/你的arXiv链接) | [![YouTube](https://img.shields.io/badge/YouTube-Video-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/你的YouTube链接) | [![Bilibili](https://img.shields.io/badge/Bilibili-Video-orange?style=for-the-badge&logo=bilibili)](https://www.bilibili.com/你的Bilibili链接) | [![Dataset](https://img.shields.io/badge/Dataset-Data-blue?style=for-the-badge&logo=dataverse)](https://drive.google.com/drive/folders/1ZntW9jPA-BXxttvCWlKQsSbmXt91fSsh?usp=sharing) |
+[![arXiv](https://img.shields.io/badge/arXiv-Preprint-red?style=for-the-badge&logo=arxiv)](https://arxiv.org/abs/你的arXiv链接)
+&nbsp;
+[![YouTube](https://img.shields.io/badge/YouTube-Video-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/你的YouTube链接)
+&nbsp;
+[![Bilibili](https://img.shields.io/badge/Bilibili-Video-orange?style=for-the-badge&logo=bilibili)](https://www.bilibili.com/你的Bilibili链接)
+&nbsp;
+[![Dataset](https://img.shields.io/badge/Dataset-Data-blue?style=for-the-badge&logo=dataverse)](https://drive.google.com/drive/folders/1ZntW9jPA-BXxttvCWlKQsSbmXt91fSsh?usp=sharing)
+
+
 
   
 ## Dataset Overview
@@ -15,6 +21,10 @@ Each clip may consist of multiple merged segments. We apply **automatic temporal
 
 All sub-clips are processed using **GVHMR** for motion capture, followed by **GMR-based reorientation**.
 After filtering and post-processing, the final dataset contains **848 motion samples**, primarily reflecting routine training activities.
+
+> **Early-Stage Project.**
+> This is an early-stage project, and parts of the dataset and pipeline are still under active development.
+> If you find this work interesting, we would greatly appreciate your feedback and suggestions.
 
 ## Category Distribution
 
@@ -31,7 +41,7 @@ After filtering and post-processing, the final dataset contains **848 motion sam
 * **Daily Training** dominates the dataset (**715 samples, ~84%**), mainly representing standard practice routines rather than explicit technique demonstrations.
 * **Boxing techniques** form the largest specialized category, with **Changquan (Long Fist)** being the most prevalent.
 * **Skill-based movements** concentrate on high-difficulty acrobatics such as somersaults and lotus swings.
-* Weapon-based motions are limited but structured, focusing on standardized staff, saber, and Tai Chi sword forms.
+* Weapon-based motions are limited and do not include weapon parts or hand movements (subject to future updates).
 
 ---
 
@@ -242,6 +252,7 @@ python scripts/vis_robot_qpos.py --robot_motion_path=././KungfuAthlete/g1/jump/2
 ```
 
 ## The Height-Adjusted Examples
+When predicting jump-type actions or data with excessive leg movement variations, the root node of GVHMR often exhibits height drift over time. We propose an extreme point correction method to adjust the root node height.
 <table>
 <tr>
 <td align="center" width="50%">
@@ -373,6 +384,8 @@ This project builds upon the following excellent open source projects:
 
 - [GVHMR](https://github.com/zju3dv/GVHMR): 3D human mesh recovery from video
 - [GMR](https://github.com/YanjieZe/GMR): general motion retargeting framework
+
+We gratefully acknowledge GVHMR and GMR, upon which this dataset is built. GVHMR recovers 3D human motion directly in a gravity-aligned reference frame, enabling physically consistent motion reconstruction from raw training videos. GMR is used for motion reorientation and normalization. Without these open-source projects, large-scale processing of in-the-wild martial arts videos and the open release of this dataset would not have been feasible.
 
 ## License
 
