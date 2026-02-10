@@ -4,10 +4,13 @@
 
 
 [![arXiv](https://img.shields.io/badge/arXiv-Preprint-red?style=for-the-badge&logo=arxiv)](https://arxiv.org/abs/你的arXiv链接)
+<span style="color:#888;font-size:0.85em; margin-left:4px;">(coming soon)</span>
 &nbsp;
 [![YouTube](https://img.shields.io/badge/YouTube-Video-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/你的YouTube链接)
+<span style="color:#888;font-size:0.85em; margin-left:4px;">(coming soon)</span>
 &nbsp;
 [![Bilibili](https://img.shields.io/badge/Bilibili-Video-orange?style=for-the-badge&logo=bilibili)](https://www.bilibili.com/你的Bilibili链接)
+<span style="color:#888;font-size:0.85em; margin-left:4px;">(coming soon)</span>
 &nbsp;
 [![Dataset](https://img.shields.io/badge/Dataset-Data-blue?style=for-the-badge&logo=dataverse)](https://drive.google.com/drive/folders/1ZntW9jPA-BXxttvCWlKQsSbmXt91fSsh?usp=sharing)
 
@@ -393,3 +396,10 @@ This project depends on third-party library with its own licenses:
 
 
 Please review this licenses before use.
+
+## Citation
+
+If you use this project in your research, please consider citing:
+
+```bibtex
+@article{coming soon}
