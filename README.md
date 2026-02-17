@@ -5,11 +5,9 @@
 
 [![arXiv](https://img.shields.io/badge/arXiv-Preprint-red?style=for-the-badge&logo=arxiv)](https://arxiv.org/abs/2602.13656)
 &nbsp;
-[![YouTube](https://img.shields.io/badge/YouTube-Video-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/)
-<span style="color:#888;font-size:0.85em; margin-left:4px;">(coming soon)</span>
+[![YouTube](https://img.shields.io/badge/YouTube-Video-red?style=for-the-badge&logo=youtube)](https://youtu.be/8v2pAaRQcPw)
 &nbsp;
-[![Bilibili](https://img.shields.io/badge/Bilibili-Video-orange?style=for-the-badge&logo=bilibili)](https://www.bilibili.com/)
-<span style="color:#888;font-size:0.85em; margin-left:4px;">(coming soon)</span>
+[![Bilibili](https://img.shields.io/badge/Bilibili-Video-orange?style=for-the-badge&logo=bilibili)](https://www.bilibili.com/video/BV1xJZCBrE4d/)
 &nbsp;
 [![Dataset](https://img.shields.io/badge/Dataset-Data-blue?style=for-the-badge&logo=dataverse)](https://drive.google.com/drive/folders/1ZntW9jPA-BXxttvCWlKQsSbmXt91fSsh?usp=sharing)
 
@@ -54,13 +52,13 @@ Due to substantial noise in the source videos, the dataset has undergone multipl
 
 All metrics are averaged over the entire dataset.
 
-| Dataset                    | FPS  | Joint Vel. | Body Lin. Vel. | Body Ang. Vel. | Average Frames   |
-| -------------------------- | ---- | ---------- | -------------- | -------------- | -------- |
-| LAFAN1                     | 50.0 | 0.00142    | 0.00021        | 0.01147        | 10749.23 |
-| PHUMA                      | 50.0 | 0.00120    | 0.00440        | -0.00131       | 169.59   |
-| AMASS                      | 30.0 | 0.00048    | -0.00568       | 0.00903        | 370.65   |
-| **KungFuAthlete (Ground)** | 50.0 | -0.00199   | 0.01057        | 0.04034        | 577.68   |
-| **KungFuAthlete (Jump)**   | 50.0 | 0.02384    | 0.05297        | 0.18017        | 397.21   |
+| Dataset                    | Joint Vel. | Body Lin. Vel. | Body Ang. Vel. | Average Frames   |
+| -------------------------- | ---------- | -------------- | -------------- | -------- |
+| LAFAN1                     | 0.00142    | 0.00021        | 0.01147        | 10749.23 |
+| PHUMA                      | 0.00120    | 0.00440        | -0.00131       | 169.59   |
+| AMASS                      | 0.00048    | -0.00568       | 0.00903        | 370.65   |
+| **KungFuAthlete (Ground)** | -0.00199   | 0.01057        | 0.04034        | 577.68   |
+| **KungFuAthlete (Jump)**   | 0.02384    | 0.05297        | 0.18017        | 397.21   |
 
 ---
 
@@ -486,4 +484,11 @@ Please review this licenses before use.
 If you use this project in your research, please consider citing:
 
 ```bibtex
-@article{coming soon}
+@article{lei2026kungfuathletebot,
+  author  = {Zhongxiang Lei and Lulu Cao and Xuyang Wang and Tianyi Qian and Jinyan Liu and Xuesong Li},
+  title   = {A Kung Fu Athlete Bot That Can Do It All Day: Highly Dynamic, Balance-Challenging Motion Dataset and Autonomous Fall-Resilient Tracking},
+  year    = {2026},
+  eprint  = {2602.13656},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.RO}
+}
