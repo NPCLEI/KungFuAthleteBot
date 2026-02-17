@@ -3,20 +3,17 @@
 <img src="./docs/cover_ub.png" controls></img>
 
 
-[![arXiv](https://img.shields.io/badge/arXiv-Preprint-red?style=for-the-badge&logo=arxiv)](https://arxiv.org/abs/你的arXiv链接)
+[![arXiv](https://img.shields.io/badge/arXiv-Preprint-red?style=for-the-badge&logo=arxiv)](https://arxiv.org/abs/2602.13656)
+&nbsp;
+[![YouTube](https://img.shields.io/badge/YouTube-Video-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/)
 <span style="color:#888;font-size:0.85em; margin-left:4px;">(coming soon)</span>
 &nbsp;
-[![YouTube](https://img.shields.io/badge/YouTube-Video-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/你的YouTube链接)
-<span style="color:#888;font-size:0.85em; margin-left:4px;">(coming soon)</span>
-&nbsp;
-[![Bilibili](https://img.shields.io/badge/Bilibili-Video-orange?style=for-the-badge&logo=bilibili)](https://www.bilibili.com/你的Bilibili链接)
+[![Bilibili](https://img.shields.io/badge/Bilibili-Video-orange?style=for-the-badge&logo=bilibili)](https://www.bilibili.com/)
 <span style="color:#888;font-size:0.85em; margin-left:4px;">(coming soon)</span>
 &nbsp;
 [![Dataset](https://img.shields.io/badge/Dataset-Data-blue?style=for-the-badge&logo=dataverse)](https://drive.google.com/drive/folders/1ZntW9jPA-BXxttvCWlKQsSbmXt91fSsh?usp=sharing)
 
 
-
-  
 ## Dataset Overview
 
 The dataset originates from athletes’ **daily martial arts training videos**, totaling **197 video clips**.
@@ -25,9 +22,14 @@ Each clip may consist of multiple merged segments. We apply **automatic temporal
 All sub-clips are processed using **GVHMR** for motion capture, followed by **GMR-based reorientation**.
 After filtering and post-processing, the final dataset contains **848 motion samples**, primarily reflecting routine training activities.
 
-> **Early-Stage Project.**
-> This is an early-stage project, and parts of the dataset and pipeline are still under active development.
-> If you find this work interesting, we would greatly appreciate your feedback and suggestions.
+Due to substantial noise in the source videos, the dataset has undergone multiple rounds of manual screening and meticulous per-sample refinement. While minor imperfections may still remain in certain samples, we ensure that the vast majority satisfy the requirements for reliable motion tracking.
+
+> **Project Status: Active Development with Ready Ground Subset**
+> Model training is currently under active development.
+> The **Ground** subset of the dataset is largely complete and ready for training.
+> The **Jump** subset still has minor imperfections due to video source limitations. Most samples have been carefully screened, though training performance may vary.
+> Your feedback and suggestions are greatly appreciated.
+
 
 ## Category Distribution
 
@@ -111,11 +113,20 @@ We divide the dataset based on the presence of jumping motions:
 
 ## Pipeline
 
-KungfuAthlete's data pipeline: Kungfu Video → Human Pose Extraction → Robot Motion Conversion → Data Cleaning
+KungfuAthlete's data pipeline: 
 
 ```
-[Video] → GVHMR → [GVHMR-Pred] → GMR → [Robot Motion] → Cleaning → [KungfuAthlete]
+[Video] → Cut by scene → GVHMR → [GVHMR-Pred (smplh)] → GMR → [Robot Motion (qpos)] → Artificial Selection → Height-Adjusted → [KungfuAthlete]
 ```
+
+### Supported Robots
+
+| Robot | ID | DOF |
+|-------|-----|-----|
+| Unitree G1 | `unitree_g1` | 29 |
+
+See [GMR README](https://github.com/YanjieZe/GMR) for other list
+
 
 ## Data Format
 
@@ -136,7 +147,9 @@ KungfuAthlete's data pipeline: Kungfu Video → Human Pose Extraction → Robot 
 }
 ```
 
-### GMR qpos
+If you intend to perform motion retargeting to other robotic platforms, or to employ alternative retargeting methodologies, please use the SMPL-H files provided in the  `collection_gvhmr` directory.
+
+### GMR qpos (`org_smoothed/`)
 
 ```python
 # robot_qpos.npz
@@ -146,6 +159,27 @@ KungfuAthlete's data pipeline: Kungfu Video → Human Pose Extraction → Robot 
 }
 ```
 
+
+### For Holosoma or BeyondMimic (`org_smoothed_mj/`)
+
+All motion files under `org_smoothed_mj/` are stored in NumPy `.npz` format and contain time-sequential kinematic data for Unitree G1 training. Each file represents a single motion clip sampled at `fps` Hz and includes joint-level states and rigid-body states expressed in the **world coordinate frame** (quaternion format: xyzw; units: meters, radians, m/s, rad/s).
+
+```python
+motion_clip = {
+    "fps": np.array([50]),               # Frame rate (Hz)
+    "joint_pos": np.ndarray,             # Shape (T, 36), joint DoF positions (rad)
+    "joint_vel": np.ndarray,             # Shape (T, 35), joint angular velocities (rad/s)
+    "body_pos_w": np.ndarray,            # Shape (T, 53, 3), rigid body positions in world frame (m)
+    "body_quat_w": np.ndarray,           # Shape (T, 53, 4), rigid body orientations in world frame (xyzw)
+    "body_lin_vel_w": np.ndarray,        # Shape (T, 53, 3), rigid body linear velocities (m/s)
+    "body_ang_vel_w": np.ndarray,        # Shape (T, 53, 3), rigid body angular velocities (rad/s)
+    "joint_names": np.ndarray,           # Shape (29,), controllable joint names (ordered)
+    "body_names": np.ndarray,            # Shape (53,), rigid body names (ordered, includes head_link)
+}
+```
+
+Here, `T` denotes the number of frames in the motion clip.
+
 ## Download
 
 You can obtain the KungfuAthlete dataset through **[this link](https://drive.google.com/drive/folders/1ZntW9jPA-BXxttvCWlKQsSbmXt91fSsh?usp=sharing)** and use it directly for your robot training. We provide GVHMR pred data and pre-cleaned **g1** robot qpos data. 
@@ -153,6 +187,62 @@ You can obtain the KungfuAthlete dataset through **[this link](https://drive.goo
 The KungfuAthlete dataset is constructed from publicly available high-dynamic videos on the , which undergo GVHMR action extraction, GMR retargeting, and data cleaning. The KungfuAthlete dataset is divided into two types: **Ground** and **Jump**. Ground indicates that there will always be one foot on the ground during the entire motion, while Jump indicates that both feet are off the ground during motion. 
 
 The following content includes visualizations of GVHMR and GMR data, as well as examples of how we use height adjustment algorithms to process the qpos data. If you wish to apply this dataset to other robots, you can refer to our processing pipeline.
+
+
+
+## Training with Holosoma (BeyondMimic-style)
+
+We leverage the open-source framework [Holosoma](https://github.com/amazon-far/holosoma) released by Amazon FAR (Frontier AI & Robotics) to perform whole-body tracking and motion imitation training. Holosoma provides a unified full-stack infrastructure for humanoid simulation, reinforcement learning, and deployment, supporting scalable training pipelines across multiple simulation backends.
+
+Please note that, in order to introduce a non-contact force penalty on the head during training, we modified the original **holosoma** configuration. Specifically, we added `"head_link"` to the `g1_29dof.body_names` list in `src/holosoma/holosoma/config_values/robot.py`, and replaced the original `src/holosoma/holosoma/data/robots/g1/g1_29dof.xml` file with our customized version located at `src/holosoma/g1_29dof_with_head_link.xml`. These modifications enable explicit modeling of the head link and allow the corresponding non-contact force penalty to be applied during optimization.
+
+If you prefer not to introduce the additional head node, you may alternatively retarget the `qpos` from the `org_smoothed` data to generate the corresponding `_mj` files. In this case, please first refer to the required configuration adjustments under `src/holosoma_retargeting/config_types`, and then run the following command to convert the data format:
+
+```bash
+python data_conversion/convert_data_format_mj.py --input_file org_smoothed/ground_smoothed/1307/1307.npz --input_fps 50 --output_fps 50 --output_name converted_res/object_interaction/1307.npz --data_format gmr --once
+```
+
+Policies can be directly trained on motion files under `org_smoothed_mj/` in a BeyondMimic-style imitation learning setup. For example:
+
+```bash
+python src/holosoma/holosoma/train_agent.py \
+    exp:g1-29dof-wbt-stand-fast-sac \
+    --command.setup_terms.motion_command.params.motion_config.use_adaptive_timesteps_sampler=True \
+    --command.setup_terms.motion_command.params.motion_config.motion_file=org_smoothed_mj/1317/1317.npz
+```
+
+This command launches training for the G1 29-DoF whole-body tracking configuration using FastSAC, with adaptive timestep sampling enabled and the specified motion file used for imitation-driven policy optimization. Please note that for highly dynamic motions involving KungfuAthlete (jump), the training performance may be less stable or suboptimal under the current configuration.
+
+
+## Sim-to-Sim Transfer and Deployment
+
+We release three fall-resilient control policies that can be directly deployed via the Holosoma framework to both MuJoCo simulation and real-world hardware platforms. All model checkpoints are located under `src/holosoma/holosoma_inference/`.
+
+### Released Models
+
+* **969** — Single-leg stance (left leg support, right leg elevated)
+* **1307** — Tai Chi sequence (~5 minutes continuous motion)
+* **0203** — High-speed punching motions
+
+### ⚠️ Safety Notice
+
+> ⚠️ **Deployment to physical hardware involves inherent risks.**
+> Although these policies demonstrate fall-resilient behavior in simulation, real-world execution may lead to unexpected dynamics, instability, or hardware stress.
+> Users are strongly advised to conduct careful validation in simulation before deploying to real robots. We assume no responsibility for any potential hardware damage resulting from improper use or deployment.
+
+### Inference
+
+Inference can be performed via the `holosoma_inference` module:
+
+```bash
+python3 src/holosoma_inference/holosoma_inference/run_policy.py inference:g1-29dof-wbt \
+    --task.model-path 1307_model_1027000.onnx \
+    --task.no-use-joystick \
+    --task.rl-rate 50 \
+    --task.use-sim-time \
+    --task.interface lo
+```
+
 
 ## Project Structure
 
@@ -325,13 +415,6 @@ When predicting jump-type actions or data with excessive leg movement variations
 </table>
 
 
-## Supported Robots
-
-| Robot | ID | DOF |
-|-------|-----|-----|
-| Unitree G1 | `unitree_g1` | 29 |
-
-See [GMR README](https://github.com/YanjieZe/GMR) for other list
 
 
 ## Video Source and Acknowledgement
@@ -380,15 +463,16 @@ https://space.bilibili.com/1475395086
 </tr>
 </table>
 
+## Acknowledgement
 
-## Acknowledgements
+This project builds upon the following excellent open-source projects:
 
-This project builds upon the following excellent open source projects:
+* [GVHMR](https://github.com/zju3dv/GVHMR): 3D human mesh recovery from video
+* [GMR](https://github.com/YanjieZe/GMR): general motion retargeting framework
+* [Holosoma](https://github.com/amazon-far/holosoma): full-stack humanoid simulation and reinforcement learning framework
 
-- [GVHMR](https://github.com/zju3dv/GVHMR): 3D human mesh recovery from video
-- [GMR](https://github.com/YanjieZe/GMR): general motion retargeting framework
+We gratefully acknowledge these projects, upon which this dataset and training pipeline are built. GVHMR recovers 3D human motion directly in a gravity-aligned reference frame, enabling physically consistent motion reconstruction from raw training videos. GMR is used for motion reorientation and normalization. Holosoma is a comprehensive humanoid robotics framework for training and deploying reinforcement learning policies on humanoid robots, as well as motion retargeting. Without these open-source projects, large-scale processing of in-the-wild martial arts videos and the open release of this dataset would not have been feasible.  
 
-We gratefully acknowledge GVHMR and GMR, upon which this dataset is built. GVHMR recovers 3D human motion directly in a gravity-aligned reference frame, enabling physically consistent motion reconstruction from raw training videos. GMR is used for motion reorientation and normalization. Without these open-source projects, large-scale processing of in-the-wild martial arts videos and the open release of this dataset would not have been feasible.
 
 ## License
 
