@@ -28,6 +28,19 @@ Due to substantial noise in the source videos, the dataset has undergone multipl
 > The **Jump** subset still has minor imperfections due to video source limitations. Most samples have been carefully screened, though training performance may vary.
 > Your feedback and suggestions are greatly appreciated.
 
+## What’s New: Native BeyondMimic Training
+
+We have recently implemented a tool (src/beyondmimic/qpos_to_npz.py) to convert QPOS format motion data into a format compatible with the **[whole_body_tracking](https://github.com/HybridRobotics/whole_body_tracking) (BeyondMimic)** project. After properly setting up the required environment for `whole_body_tracking`, this script can transform original QPOS files into `.npz` files suitable for training, ensuring that the data can be correctly loaded and utilized by BeyondMimic.
+
+### Usage
+
+```bash
+python scripts/qpos_to_npz.py \
+    --input_file org_smooth/kongfu_jump_smoothed/278/278.npz \
+    --input_fps 50 \
+    --output_path org_smooth_by/278.npz \
+    --output_fps 50
+```
 
 ## Category Distribution
 
