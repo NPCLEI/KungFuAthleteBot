@@ -12,7 +12,8 @@
 [![Bilibili](https://img.shields.io/badge/Bilibili-Video-orange?style=for-the-badge&logo=bilibili)](https://www.bilibili.com/video/BV1xJZCBrE4d/)
 &nbsp;
 [![Dataset](https://img.shields.io/badge/Dataset-Data-blue?style=for-the-badge&logo=dataverse)](https://drive.google.com/drive/folders/1ZntW9jPA-BXxttvCWlKQsSbmXt91fSsh?usp=sharing)
-
+&nbsp;
+[![Hugging Face](https://img.shields.io/badge/HuggingFace-KungfuAthleteBot-yellow?style=for-the-badge&logo=huggingface)](https://huggingface.co/datasets/LuluCao/KungfuAthleteBot)
 
 ## Dataset Overview
 
