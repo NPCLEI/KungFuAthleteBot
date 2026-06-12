@@ -621,11 +621,14 @@ class MotionStandingCommand(MotionCommand):
     orientations_delta = quat_from_euler_xyz(
       rand_samples[:, 3], rand_samples[:, 4], rand_samples[:, 5]
     )
-    root_ori[env_ids] = quat_mul(orientations_delta, root_ori[env_ids])
+
     root_ori[env_ids] = torch.where(
-        reset_standing_indices.unsqueeze(1),
-        sampled_init_root_states_xyzw[:, 3:7],
-        root_ori[env_ids]
+    reset_standing_indices.unsqueeze(1),
+    torch.cat([
+        sampled_init_root_states_xyzw[:, 6:7],  
+        sampled_init_root_states_xyzw[:, 3:6],   
+    ], dim=1),
+    root_ori[env_ids]
     )
 
     range_list = [
