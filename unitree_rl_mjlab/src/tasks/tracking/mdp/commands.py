@@ -517,6 +517,19 @@ class MotionCommandCfg(CommandTermCfg):
   def build(self, env: ManagerBasedRlEnv) -> MotionCommand:
     return MotionCommand(self, env)
 
+def quat_wxyz_from_pth(root_xyzw: torch.Tensor) -> torch.Tensor:
+  """Convert Isaac pelvis quat (x,y,z,w at indices 3:7) to mjlab w,x,y,z."""
+  return torch.stack(
+    [
+      root_xyzw[..., 6],
+      root_xyzw[..., 3],
+      root_xyzw[..., 4],
+      root_xyzw[..., 5],
+    ],
+    dim=-1,
+  )
+
+
 def select_most_diverse_quaternions(quats, num_select):
     """
     quats: (N,4) torch.Tensor, assumed normalized
@@ -560,7 +573,8 @@ class MotionStandingCommand(MotionCommand):
     if not os.path.exists(cfg.init_pos_file):
         raise FileNotFoundError(f"Can't find file: {cfg.init_pos_file}")
     self.init_robot_data = torch.load(cfg.init_pos_file)
-    self.most_diverse_idxs = select_most_diverse_quaternions(self.init_robot_data["robot_root_states_xyzw"], 2048)
+    pth_quats = self.init_robot_data["robot_root_states_xyzw"][:, 3:7]
+    self.most_diverse_idxs = select_most_diverse_quaternions(pth_quats, 2048)
     self.is_standing_task = torch.multinomial(
         torch.tensor(cfg.tracking_standing_weight, device=self.device),
         num_samples=self.num_envs,
@@ -571,6 +585,71 @@ class MotionStandingCommand(MotionCommand):
     self.root_index = _get_body_indexes(self, cfg.root_body_name)
     self.shoulders_indexes = _get_body_indexes(self, cfg.shoulders_body_names)
     self.feet_indexes = _get_body_indexes(self, cfg.feet_body_names)
+
+  def _apply_standing_init(
+    self,
+    env_ids: torch.Tensor,
+    init_ids: torch.Tensor,
+    *,
+    motion_xy: torch.Tensor | None = None,
+    use_pth_xy: bool = False,
+    zero_velocity: bool = False,
+  ) -> None:
+    """Write fallen init from ``init_pos_file`` into sim for ``env_ids``.
+
+    Uses motion reference x,y (optionally RSI-perturbed via ``motion_xy``) with
+    z/orientation/velocities/joints from the .pth sample. Quaternions are
+    converted from Isaac xyzw to mjlab wxyz before ``write_root_state_to_sim``.
+    """
+    init_ids_cpu = init_ids.detach().to(device="cpu", dtype=torch.long)
+    root_xyzw = self.init_robot_data["robot_root_states_xyzw"][init_ids_cpu].to(
+      self.device
+    )
+    dof_pos = self.init_robot_data["dof_pos"][init_ids_cpu].to(self.device)
+    dof_vel = torch.zeros_like(dof_pos)
+
+    root_pos = root_xyzw[:, :3].clone()
+    root_ori = quat_wxyz_from_pth(root_xyzw)
+    root_lin_vel = root_xyzw[:, 7:10].clone()
+    root_ang_vel = root_xyzw[:, 10:13].clone()
+
+    if zero_velocity:
+      root_lin_vel.zero_()
+      root_ang_vel.zero_()
+
+    if motion_xy is None:
+      motion_xy = self.body_pos_w[env_ids, 0, :2]
+    if use_pth_xy:
+      root_pos[:, :2] = root_xyzw[:, :2]
+    else:
+      root_pos[:, :2] = motion_xy
+
+    soft_joint_pos_limits = self.robot.data.soft_joint_pos_limits[env_ids]
+    joint_pos = torch.clip(
+      dof_pos, soft_joint_pos_limits[:, :, 0], soft_joint_pos_limits[:, :, 1]
+    )
+
+    self.robot.write_joint_state_to_sim(joint_pos, dof_vel, env_ids=env_ids)
+    root_state = torch.cat(
+      [root_pos, root_ori, root_lin_vel, root_ang_vel],
+      dim=-1,
+    )
+    self.robot.write_root_state_to_sim(root_state, env_ids=env_ids)
+    self.robot.clear_state(env_ids=env_ids)
+
+  def _sample_motion_root_xy(self, env_ids: torch.Tensor) -> torch.Tensor:
+    """Motion pelvis x,y at t=0 with ``pose_range`` RSI (training standing path)."""
+    root_pos = self.body_pos_w[env_ids, 0].clone()
+    range_list = [
+      self.cfg.pose_range.get(key, (0.0, 0.0))
+      for key in ["x", "y", "z", "roll", "pitch", "yaw"]
+    ]
+    ranges = torch.tensor(range_list, device=self.device)
+    rand_samples = sample_uniform(
+      ranges[:, 0], ranges[:, 1], (len(env_ids), 6), device=self.device
+    )
+    root_pos += rand_samples[:, 0:3]
+    return root_pos[:, :2]
 
   def _resample_command(self, env_ids: torch.Tensor):
     if self.cfg.sampling_mode == "start":
@@ -604,32 +683,11 @@ class MotionStandingCommand(MotionCommand):
       ranges[:, 0], ranges[:, 1], (len(env_ids), 6), device=self.device
     )
     root_pos[env_ids] += rand_samples[:, 0:3]
-    sampled_init_ids = torch.tensor(self.most_diverse_idxs)[torch.randint(low=0, high=len(self.most_diverse_idxs), size=(env_ids.numel(),)).long()]
-    sampled_init_root_states_xyzw = self.init_robot_data["robot_root_states_xyzw"][sampled_init_ids].to(self.device)
-    sampled_init_dof_pos = self.init_robot_data["dof_pos"][sampled_init_ids].to(self.device)
-    sampled_init_dof_vel = torch.zeros_like(sampled_init_dof_pos)
-    
-    root_pos[env_ids] = torch.where(
-        reset_standing_indices.unsqueeze(1),
-        torch.cat([
-            root_pos[env_ids, :2],
-            sampled_init_root_states_xyzw[:, 2:3]
-        ], dim=1),
-        root_pos[env_ids]
-    )
-    
+
     orientations_delta = quat_from_euler_xyz(
       rand_samples[:, 3], rand_samples[:, 4], rand_samples[:, 5]
     )
-
-    root_ori[env_ids] = torch.where(
-    reset_standing_indices.unsqueeze(1),
-    torch.cat([
-        sampled_init_root_states_xyzw[:, 6:7],  
-        sampled_init_root_states_xyzw[:, 3:6],   
-    ], dim=1),
-    root_ori[env_ids]
-    )
+    root_ori[env_ids] = quat_mul(orientations_delta, root_ori[env_ids])
 
     range_list = [
       self.cfg.velocity_range.get(key, (0.0, 0.0))
@@ -641,16 +699,6 @@ class MotionStandingCommand(MotionCommand):
     )
     root_lin_vel[env_ids] += rand_samples[:, :3]
     root_ang_vel[env_ids] += rand_samples[:, 3:]
-    root_lin_vel[env_ids] = torch.where(
-        reset_standing_indices.unsqueeze(1),
-        sampled_init_root_states_xyzw[:, 7:10],
-        root_lin_vel[env_ids]
-    )
-    root_ang_vel[env_ids] = torch.where(
-        reset_standing_indices.unsqueeze(1),
-        sampled_init_root_states_xyzw[:, 10:13],
-        root_ang_vel[env_ids]
-    )
 
     joint_pos = self.joint_pos.clone()
     joint_vel = self.joint_vel.clone()
@@ -661,36 +709,43 @@ class MotionStandingCommand(MotionCommand):
       size=joint_pos.shape,
       device=joint_pos.device,  # type: ignore
     )
-    soft_joint_pos_limits = self.robot.data.soft_joint_pos_limits[env_ids]
-    joint_pos[env_ids] = torch.where(
-        reset_standing_indices.unsqueeze(1),
-        sampled_init_dof_pos[:],
-        joint_pos[env_ids]
-    )
-    joint_vel[env_ids] = torch.where(
-        reset_standing_indices.unsqueeze(1),
-        sampled_init_dof_vel[:],
-        joint_vel[env_ids]
-    )
-    joint_pos[env_ids] = torch.clip(
-      joint_pos[env_ids], soft_joint_pos_limits[:, :, 0], soft_joint_pos_limits[:, :, 1]
-    )
-    self.robot.write_joint_state_to_sim(
-      joint_pos[env_ids], joint_vel[env_ids], env_ids=env_ids
-    )
 
-    root_state = torch.cat(
-      [
-        root_pos[env_ids],
-        root_ori[env_ids],
-        root_lin_vel[env_ids],
-        root_ang_vel[env_ids],
-      ],
-      dim=-1,
-    )
-    self.robot.write_root_state_to_sim(root_state, env_ids=env_ids)
+    standing_mask = reset_standing_indices
+    standing_env_ids = env_ids[standing_mask]
+    tracking_env_ids = env_ids[~standing_mask]
 
-    self.robot.clear_state(env_ids=env_ids)
+    if standing_env_ids.numel() > 0:
+      pool = torch.tensor(self.most_diverse_idxs, device=self.device, dtype=torch.long)
+      sampled_init_ids = pool[
+        torch.randint(0, pool.numel(), (standing_env_ids.numel(),), device=self.device)
+      ]
+      self._apply_standing_init(
+        standing_env_ids,
+        sampled_init_ids,
+        motion_xy=root_pos[standing_env_ids, :2],
+      )
+
+    if tracking_env_ids.numel() > 0:
+      soft_joint_pos_limits = self.robot.data.soft_joint_pos_limits[tracking_env_ids]
+      joint_pos[tracking_env_ids] = torch.clip(
+        joint_pos[tracking_env_ids],
+        soft_joint_pos_limits[:, :, 0],
+        soft_joint_pos_limits[:, :, 1],
+      )
+      self.robot.write_joint_state_to_sim(
+        joint_pos[tracking_env_ids], joint_vel[tracking_env_ids], env_ids=tracking_env_ids
+      )
+      root_state = torch.cat(
+        [
+          root_pos[tracking_env_ids],
+          root_ori[tracking_env_ids],
+          root_lin_vel[tracking_env_ids],
+          root_ang_vel[tracking_env_ids],
+        ],
+        dim=-1,
+      )
+      self.robot.write_root_state_to_sim(root_state, env_ids=tracking_env_ids)
+      self.robot.clear_state(env_ids=tracking_env_ids)
 
   def _update_command(self):
     self.time_steps += 1

@@ -295,7 +295,7 @@ def make_tracking_standing_env_cfg() -> ManagerBasedRlEnvCfg:
     "time_out": TerminationTermCfg(func=mdp.time_out, time_out=True),
     "tracking_failure": TerminationTermCfg(
       func=TolerantTermination(
-        bad_tracking_time_threshold_s=3.0,
+        bad_tracking_time_threshold_s=4.0,
         command_name="motion",
         terms=[
           ("anchor_pos_z", mdp.bad_anchor_pos_z_only, {
@@ -341,7 +341,8 @@ def make_tracking_standing_env_cfg() -> ManagerBasedRlEnvCfg:
     ),
     sim=SimulationCfg(
       nconmax=35,
-      njmax=350,
+      njmax=400,
+      contact_sensor_maxmatch=256,
       mujoco=MujocoCfg(
         timestep=0.005,
         iterations=10,
@@ -360,7 +361,7 @@ def make_tracking_standing_env_cfg_1307_stage_I() -> ManagerBasedRlEnvCfg:
       if name == "anchor_pos_z":
           params["threshold"] = 0.5
       if name == "ee_body_pos_z":
-          params["threshold"] = 0.4
+          params["threshold"] = 0.50
   
   return cfg
 

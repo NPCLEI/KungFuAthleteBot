@@ -177,7 +177,7 @@ def _post_process_unitree_g1_flat_tracking_standing_env_cfg(
     cfg.observations["actor"].enable_corruption = False
     cfg.events.pop("push_robot", None)
     cfg.terminations.pop("tracking_failure", None)
-    cfg.commands["motion"].tracking_standing_weight=(1.0, 0.0)
+    cfg.commands["motion"].tracking_standing_weight=(0.0, 1.0)
 
     # Disable RSI randomization.
     motion_cmd.pose_range = {}

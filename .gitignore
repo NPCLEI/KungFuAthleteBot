@@ -202,6 +202,24 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
+# RL training artifacts (unitree_rl_mjlab) — do not commit checkpoints, metrics, or run logs
+unitree_rl_mjlab/logs/
+unitree_rl_mjlab/wandb/
+unitree_rl_mjlab/MUJOCO_LOG.TXT
+
+# Local nohup / training stdout captured under docs/
+docs/*.out
+
+# Local-only comparison docs, extra charts, and helper scripts (not for release)
+docs/1307_ppo_vs_fastsac_comparison.md
+docs/comparison/part1_tracking/episode_le16h_smooth_downsampled.png
+docs/comparison/part1_tracking/reward_le16h_smooth_downsampled.png
+docs/comparison/part1_tracking/reward_full.png
+docs/comparison/part1_tracking/reward_fastsac_downsampled.png
+docs/comparison/part1_tracking/reward_fastsac_env_rewards_compare.png
+unitree_rl_mjlab/scripts/plot_fastsac_reward.py
+unitree_rl_mjlab/scripts/record_comparison_videos.sh
+
 # Marimo
 marimo/_static/
 marimo/_lsp/

@@ -6,6 +6,8 @@ from mjlab.rl import (
   RslRlPpoAlgorithmCfg,
 )
 
+from src.rl.config import HolosomaFastSACRunnerCfg
+
 
 def unitree_g1_tracking_ppo_runner_cfg() -> RslRlOnPolicyRunnerCfg:
   """Create RL runner configuration for Unitree G1 tracking task."""
@@ -13,7 +15,7 @@ def unitree_g1_tracking_ppo_runner_cfg() -> RslRlOnPolicyRunnerCfg:
     actor=RslRlModelCfg(
       hidden_dims=(512, 256, 128),
       activation="elu",
-      obs_normalization=True,
+      obs_normalization=False,
       distribution_cfg={
         "class_name": "GaussianDistribution",
         "init_std": 1.0,
@@ -23,7 +25,7 @@ def unitree_g1_tracking_ppo_runner_cfg() -> RslRlOnPolicyRunnerCfg:
     critic=RslRlModelCfg(
       hidden_dims=(512, 256, 128),
       activation="elu",
-      obs_normalization=True,
+      obs_normalization=False,
     ),
     algorithm=RslRlPpoAlgorithmCfg(
       value_loss_coef=1.0,
@@ -43,4 +45,28 @@ def unitree_g1_tracking_ppo_runner_cfg() -> RslRlOnPolicyRunnerCfg:
     save_interval=500,
     num_steps_per_env=24,
     max_iterations=30001,
+  )
+
+
+def unitree_g1_tracking_fastsac_runner_cfg() -> HolosomaFastSACRunnerCfg:
+  """FastSAC config for G1 motion tracking (holosoma, mjlab env)."""
+  return HolosomaFastSACRunnerCfg(
+    experiment_name="g1_tracking_fastsac",
+    max_iterations=720024,
+    save_interval=500,
+    logging_interval=100,
+    console_logging_interval=100,
+    gamma=0.99,
+    num_updates=2,
+    num_atoms=501,
+    v_min=-20.0,
+    v_max=20.0,
+    target_entropy_ratio=0.5,
+    policy_frequency=4,
+    batch_size=2048,
+    buffer_size=4096,
+    use_symmetry=False,
+    use_tanh=False,
+    compile=False,
+    amp=False,
   )

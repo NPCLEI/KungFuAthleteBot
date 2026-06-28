@@ -31,9 +31,10 @@ Due to substantial noise in the source videos, the dataset has undergone multipl
 > The **Jump** subset still has minor imperfections due to video source limitations. Most samples have been carefully screened, though training performance may vary.
 > Your feedback and suggestions are greatly appreciated.
 
-## 🤩 What’s New: Mjlab-Based Fall Recovery Code (Open Source)
+## 🤩 What’s New
 
-This project is built upon the open-source **[unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)** framework from Unitree Robotics. We have extended it with implementations of fall recovery and LKE sampling modules, and hereby publicly release the code repository related to 1307 motion training.
+- **2026-04-14** — **Mjlab-Based Fall Recovery Code (Open Source):** This project is built upon the open-source **[unitree_rl_mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab)** framework from Unitree Robotics. We have extended it with implementations of fall recovery and LKE sampling modules, and hereby publicly release the code repository related to 1307 motion training.
+- **2026-06-28** — **FastSAC Integration (Open Source):** We integrate **[FastSAC](https://github.com/amazon-far/holosoma)**—a distributional Soft Actor-Critic algorithm from the [Holosoma](https://github.com/amazon-far/holosoma) framework—as an optional training backend. On the 1307 motion-tracking task, FastSAC reaches usable tracking performance **2–2.5× faster in wall-clock time** than PPO during early training (see [FastSAC Training](#fastsac) for benchmarks).
 
 See the [Training with Unitree RL Mjlab](#code) section for detailed usage.
 
@@ -44,6 +45,7 @@ Todo checklist:
 - [x] Dataset
 - [x] Height-Adjusted Code
 - [x] Training Code
+- [x] FastSAC Integration (optional training backend)
 - [x] 1307(Tai Chi) Fall Recovery Checkpoint
 - [x] Real Deployment
 - [ ] More Data
@@ -194,27 +196,6 @@ If you intend to perform motion retargeting to other robotic platforms, or to em
 }
 ```
 
-
-### For BeyondMimic (`org_smoothed_mj/`)
-
-All motion files under `org_smoothed_mj/` are stored in NumPy `.npz` format and contain time-sequential kinematic data for Unitree G1 training. Each file represents a single motion clip sampled at `fps` Hz and includes joint-level states and rigid-body states expressed in the **world coordinate frame** (quaternion format: xyzw; units: meters, radians, m/s, rad/s).
-
-```python
-motion_clip = {
-    "fps": np.array([50]),               # Frame rate (Hz)
-    "joint_pos": np.ndarray,             # Shape (T, 36), joint DoF positions (rad)
-    "joint_vel": np.ndarray,             # Shape (T, 35), joint angular velocities (rad/s)
-    "body_pos_w": np.ndarray,            # Shape (T, 53, 3), rigid body positions in world frame (m)
-    "body_quat_w": np.ndarray,           # Shape (T, 53, 4), rigid body orientations in world frame (xyzw)
-    "body_lin_vel_w": np.ndarray,        # Shape (T, 53, 3), rigid body linear velocities (m/s)
-    "body_ang_vel_w": np.ndarray,        # Shape (T, 53, 3), rigid body angular velocities (rad/s)
-    "joint_names": np.ndarray,           # Shape (29,), controllable joint names (ordered)
-    "body_names": np.ndarray,            # Shape (53,), rigid body names (ordered, includes head_link)
-}
-```
-
-Here, `T` denotes the number of frames in the motion clip.
-
 ## Download Dataset
 
 You can obtain the KungfuAthlete dataset through **[this link](https://drive.google.com/drive/folders/1ZntW9jPA-BXxttvCWlKQsSbmXt91fSsh?usp=sharing)** and use it directly for your robot training. We provide GVHMR pred data and pre-cleaned **g1** robot qpos data. 
@@ -261,6 +242,8 @@ cd unitree_rl_mjlab
 pip install -e .
 ```
 
+FastSAC training uses the vendored `holosoma_min` package at the repo root (installed automatically via `pip install -e .`). See [FastSAC Training](#fastsac) for usage and benchmarks.
+
 If you encounter any issues during installation, please refer to [the installation documentation for Unitree RL Mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab/blob/main/doc/setup_en.md).
 
 ### 2. Prepare Motion Files
@@ -282,20 +265,106 @@ After confirming the NPZ file are prepared, you can launch training. For detaile
 Our training is divided into **three stages**:
 - Stage 1: Enable the policy to roughly track motions and acquire basic fall recovery capabilities.
   ```bash
-  python scripts/train.py Unitree-G1-1307-Stage-I --motion_file=src/assets/motions/g1/1307.npz --env.scene.num-envs=8192 --env.commands.motion.sampling-mode=adaptive
+  python scripts/train.py Unitree-G1-1307-Stage-I --motion-file src/assets/motions/g1/1307.npz --env.scene.num-envs=8192 --env.commands.motion.sampling-mode=adaptive
   ```
 - Stage 2: Improve the precision of motion tracking for the policy.
   ```bash
-  python scripts/train.py Unitree-G1-1307-Stage-II --motion_file=src/assets/motions/g1/1307.npz --env.scene.num-envs=8192 --env.commands.motion.sampling-mode=adaptive --agent.resume=True
+  python scripts/train.py Unitree-G1-1307-Stage-II --motion-file src/assets/motions/g1/1307.npz --env.scene.num-envs=8192 --env.commands.motion.sampling-mode=adaptive --agent.resume=True
   ```
 - Stage 3: Enhance the robustness of the policy to reduce the likelihood of falling.
   ```bash
-  python scripts/train.py Unitree-G1-1307-Stage-III --motion_file=src/assets/motions/g1/1307.npz --env.scene.num-envs=8192 --env.commands.motion.sampling-mode=adaptive --agent.resume=True
+  python scripts/train.py Unitree-G1-1307-Stage-III --motion-file src/assets/motions/g1/1307.npz --env.scene.num-envs=8192 --env.commands.motion.sampling-mode=adaptive --agent.resume=True
   ```
 
-### Released Models
+### 3.1 FastSAC Training (Optional) <a id="fastsac"></a>
 
-Model Path: `unitree_rl_mjlab\models\`
+#### What is FastSAC?
+
+**FastSAC** is an efficient, off-policy variant of Soft Actor-Critic (SAC) from the [Holosoma](https://github.com/amazon-far/holosoma) humanoid robotics framework. It is designed for large-scale training with massively parallel simulation and uses **observation normalization** by default. In this repository, we vendored a minimal algorithm-only subset (`holosoma_min`) and integrated it on top of the existing mjlab environments—no Holosoma simulator stack is required.
+
+#### Why FastSAC?
+
+Compared to the default **PPO** pipeline, FastSAC offers significantly better **wall-clock sample efficiency** during early training on the 1307 motion-tracking task. Under identical environment settings (`Unitree-G1-1307-Stage-I`, pure tracking with `tracking-standing-weight = (1.0, 0.0)`), FastSAC reaches reward thresholds of 35 and 38 in roughly **39%** and **55%** of PPO's wall time, respectively. This makes FastSAC a practical choice when you need a usable tracking policy quickly.
+
+> **Note:** FastSAC excels at early convergence; PPO may still reach slightly higher final reward given a longer training budget. See the milestone table below for details.
+
+#### PPO vs FastSAC Benchmark (1307 Tracking Stage I)
+
+Mean reward and episode length vs. wall-clock time (16 h window, rolling mean with window 50):
+
+<table>
+<tr>
+<td align="center" width="50%">
+
+![](./docs/comparison/part1_tracking/reward_le16h_smooth.png)  
+**Mean Reward vs. Wall Time**
+
+</td>
+<td align="center" width="50%">
+
+![](./docs/comparison/part1_tracking/episode_le16h_smooth.png)  
+**Episode Length vs. Wall Time**
+
+</td>
+</tr>
+</table>
+
+**Time-to-reward milestones** (wall-clock hours to first reach each mean-reward threshold):
+
+| Reward ≥ | PPO Wall Time (h) | FastSAC Wall Time (h) | FastSAC Speedup |
+|----------|-------------------|-----------------------|-----------------|
+| 35 | 4.21 | 1.65 | **2.55×** |
+| 38 | 7.60 | 4.18 | **1.82×** |
+| 39 | 10.75 | 14.10 | 0.76× (PPO faster) |
+
+Benchmark curves can be reproduced with `unitree_rl_mjlab/scripts/plot_comparison.py` (see script `--help` for options).
+
+#### Usage
+
+FastSAC training uses the vendored `holosoma_min` package (installed automatically via `pip install -e .`). Key differences from PPO:
+
+- FastSAC is **off-policy**; training **step** counts environment steps (not PPO learning iterations). Default `max_iterations=720024` aligns with PPO's sample budget (30001 iter × 24 steps/env).
+- Checkpoints are named by env step (e.g. `model_0720000.pt`), not PPO iteration index.
+- Published PPO checkpoint `models/1307/1307.pt` **cannot** be loaded for FastSAC play.
+- FastSAC training currently supports **single-GPU only**; multi-GPU support is planned for a future release.
+
+Three-stage FastSAC commands (symmetric to PPO above):
+
+```bash
+export PYTHONPATH=$PWD:$PYTHONPATH
+
+# Stage I
+python scripts/train.py Unitree-G1-1307-Stage-I \
+  --motion-file src/assets/motions/g1/1307.npz \
+  --env.scene.num-envs 8192 \
+  --env.commands.motion.sampling-mode adaptive \
+  --algo fast_sac --gpu-ids 0
+
+# Stage II (resume from Stage I)
+python scripts/train.py Unitree-G1-1307-Stage-II \
+  --motion-file src/assets/motions/g1/1307.npz \
+  --env.scene.num-envs 8192 \
+  --env.commands.motion.sampling-mode adaptive \
+  --algo fast_sac --fast-sac-agent.resume True --gpu-ids 0
+
+# Stage III
+python scripts/train.py Unitree-G1-1307-Stage-III \
+  --motion-file src/assets/motions/g1/1307.npz \
+  --env.scene.num-envs 8192 \
+  --env.commands.motion.sampling-mode adaptive \
+  --algo fast_sac --fast-sac-agent.resume True --gpu-ids 0
+```
+
+**Logs:** PPO writes to `logs/rsl_rl/g1_tracking/`; FastSAC writes to `logs/fastsac/g1_tracking_fastsac/`. Each run includes `params/`, TensorBoard events, `train.log`, and `run_meta.json`. FastSAC runs also produce `metrics.jsonl` (default interval: 100 steps). View with:
+
+```bash
+tensorboard --logdir logs/fastsac/g1_tracking_fastsac
+```
+
+For background training, redirect stdout to the run's `train.log` rather than a separate `logs/nohup/` directory.
+
+
+Model Path: `unitree_rl_mjlab/models/`
 
 * **1307** — Tai Chi sequence (~5 minutes continuous motion)
 
@@ -305,12 +374,23 @@ Model Path: `unitree_rl_mjlab\models\`
 > Although these policies demonstrate fall-resilient behavior in simulation, real-world execution may lead to unexpected dynamics, instability, or hardware stress.
 > Users are strongly advised to conduct careful validation in simulation before deploying to real robots. We assume no responsibility for any potential hardware damage resulting from improper use or deployment.
 
+---
+
 ### Inference
 
 To visualize policy behavior in MuJoCo:
 
 ```bash
-python scripts/play.py Unitree-G1-1307-Checkpoint --motion_file=src/assets/motions/g1/1307.npz --checkpoint_file=models/1307/1307.pt
+python scripts/play.py Unitree-G1-1307-Checkpoint --motion-file src/assets/motions/g1/1307.npz --checkpoint-file models/1307/1307.pt
+```
+
+FastSAC-trained policy (use a FastSAC checkpoint, not `1307.pt`):
+
+```bash
+python scripts/play.py Unitree-G1-1307-Stage-III \
+  --algo fast_sac \
+  --motion-file src/assets/motions/g1/1307.npz \
+  --checkpoint-file logs/fastsac/g1_tracking_fastsac/<run_dir>/model_XXXXXX.pt
 ```
 
 <table>
@@ -383,11 +463,11 @@ python scripts/vis_gvhmr.py --pose_file ./KungfuAthlete/gvhmr/ground/3/3.pt --sa
 # Retarget to robot motion (conda env: gmr, directory: KungfuAthlete/third_party/GMR/)
 conda activate gmr
 cd third_party/GMR/
-python scripts/gvhmr_to_qpos.py --gvhmr_pred_file=././KungfuAthlete/gvhmr/ground/3/3.pt --save_path=././KungfuAthlete/g1/ground/3/3.npz --record_video --video_path=././KungfuAthlete/g1/ground/3/3.mp4
+python scripts/gvhmr_to_qpos.py --gvhmr_pred_file=./KungfuAthlete/gvhmr/ground/3/3.pt --save_path=./KungfuAthlete/g1/ground/3/3.npz --record_video --video_path=./KungfuAthlete/g1/ground/3/3.mp4
 
 # Visualize GMR data (conda env: gmr, directory: KungfuAthlete/third_party/GMR/)
 conda activate gmr
-python scripts/vis_robot_qpos.py --robot_motion_path=././KungfuAthlete/g1/ground/3/3.npz --record_video --video_path=././KungfuAthlete/g1/ground/3/3.mp4
+python scripts/vis_robot_qpos.py --robot_motion_path=./KungfuAthlete/g1/ground/3/3.npz --record_video --video_path=./KungfuAthlete/g1/ground/3/3.mp4
 ```
 
 ### Jump data
@@ -400,15 +480,15 @@ python scripts/vis_gvhmr.py --pose_file ./KungfuAthlete/gvhmr/jump/278/278.pt --
 # Retarget to robot motion (conda env: gmr, directory: KungfuAthlete/third_party/GMR/)
 conda activate gmr
 cd third_party/GMR/
-python scripts/gvhmr_to_qpos.py --gvhmr_pred_file=././KungfuAthlete/gvhmr/jump/278/278.pt --save_path=././KungfuAthlete/g1/jump/278/278_before.npz --record_video --video_path=././KungfuAthlete/g1/jump/278/278_before.mp4
+python scripts/gvhmr_to_qpos.py --gvhmr_pred_file=./KungfuAthlete/gvhmr/jump/278/278.pt --save_path=./KungfuAthlete/g1/jump/278/278_before.npz --record_video --video_path=./KungfuAthlete/g1/jump/278/278_before.mp4
 
 # Adjust height (conda env: gmr, directory: KungfuAthlete/third_party/GMR/)
 conda activate gmr
-python scripts/adjust_robot_height_by_gravity.py --robot_motion_path=././KungfuAthlete/g1/jump/278/278_before.npz --save_path=././KungfuAthlete/g1/jump/278/278_after.npz --record_video --video_path=././KungfuAthlete/g1/jump/278/278_after.mp4
+python scripts/adjust_robot_height_by_gravity.py --robot_motion_path=./KungfuAthlete/g1/jump/278/278_before.npz --save_path=./KungfuAthlete/g1/jump/278/278_after.npz --record_video --video_path=./KungfuAthlete/g1/jump/278/278_after.mp4
 
 # Visualize GMR data (conda env: gmr, directory: KungfuAthlete/third_party/GMR/)
 conda activate gmr
-python scripts/vis_robot_qpos.py --robot_motion_path=././KungfuAthlete/g1/jump/278/278_after.npz --record_video --video_path=././KungfuAthlete/g1/jump/278/278_vis.mp4
+python scripts/vis_robot_qpos.py --robot_motion_path=./KungfuAthlete/g1/jump/278/278_after.npz --record_video --video_path=./KungfuAthlete/g1/jump/278/278_vis.mp4
 ```
 
 ## The Height-Adjusted Examples
@@ -533,9 +613,10 @@ This project builds upon the following excellent open-source projects:
 
 * [GVHMR](https://github.com/zju3dv/GVHMR): 3D human mesh recovery from video
 * [GMR](https://github.com/YanjieZe/GMR): general motion retargeting framework
-* [Unitree RL Mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab): A lightweight, modular framework for RL robotics research and sim-to-real deployment.
+* [Unitree RL Mjlab](https://github.com/unitreerobotics/unitree_rl_mjlab): A lightweight, modular framework for RL robotics research and sim-to-real deployment
+* [Holosoma](https://github.com/amazon-far/holosoma) / **FastSAC**: The optional FastSAC training backend in this repository is adapted from the Holosoma framework. We vendored a minimal algorithm-only subset (`holosoma_min`) atop mjlab environments without importing the Holosoma simulator stack.
 
-We gratefully acknowledge these projects, upon which this dataset and training pipeline are built. GVHMR recovers 3D human motion directly in a gravity-aligned reference frame, enabling physically consistent motion reconstruction from raw training videos. GMR is used for motion reorientation and normalization. Unitree RL Mjlab is a comprehensive humanoid robotics framework for training and deploying reinforcement learning policies on humanoid robots. Without these open-source projects, large-scale processing of in-the-wild martial arts videos and the open release of this dataset would not have been feasible.  
+We gratefully acknowledge these projects, upon which this dataset and training pipeline are built. GVHMR recovers 3D human motion directly in a gravity-aligned reference frame, enabling physically consistent motion reconstruction from raw training videos. GMR is used for motion reorientation and normalization. Unitree RL Mjlab provides the core environment and PPO training pipeline. **FastSAC**—an efficient off-policy SAC variant from Holosoma—enables faster wall-clock convergence on motion-tracking tasks in this repository.
 
 
 ## License
